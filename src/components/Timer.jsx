@@ -11,21 +11,35 @@ const Timer = ({ onTimerStop }) => {
     (event) => {
       if (event.code === "Space" && !isRunning && !spacebarPressStart) {
         setSpacebarPressStart(Date.now());
+        console.log("Space key pressed");
       }
     },
     [isRunning, spacebarPressStart]
   );
 
+  useEffect(() => {
+    let timeoutId;
+    if (spacebarPressStart && !isRunning) {
+      timeoutId = setTimeout(() => {
+        setLastResult(null);
+        console.log("Spacebar held for 1s, lastResult reset");
+      }, 1000);
+    }
+    return () => clearTimeout(timeoutId);
+  }, [spacebarPressStart, isRunning]);
+
   const handleKeyUp = useCallback(
     (event) => {
       if (event.code === "Space") {
+        console.log("Space key released");
         if (!isRunning && spacebarPressStart) {
           const pressDuration = Date.now() - spacebarPressStart;
+          console.log(`Press duration: ${pressDuration}ms`);
           if (pressDuration >= 1000) {
             setIsRunning(true);
             setStartTime(Date.now());
             setTime(0);
-            setLastResult(null);
+            console.log("Timer started");
           }
         } else if (isRunning) {
           setIsRunning(false);
@@ -55,7 +69,7 @@ const Timer = ({ onTimerStop }) => {
     if (isRunning) {
       intervalId = setInterval(() => {
         setTime(Date.now() - startTime);
-      }, 100);
+      }, 100); // Update every 100ms for smoother display
     }
     return () => {
       clearInterval(intervalId);
@@ -92,7 +106,3 @@ const Timer = ({ onTimerStop }) => {
 };
 
 export default Timer;
-
-/*------------------------------
-
--------------------------------*/
