@@ -5,34 +5,40 @@ const Timer = ({ onTimerStop }) => {
   const [time, setTime] = useState(0);
   const [startTime, setStartTime] = useState(0);
   const [lastResult, setLastResult] = useState(null);
+  const [spacebarPressStart, setSpacebarPressStart] = useState(null);
 
   const handleKeyDown = useCallback(
     (event) => {
-      if (event.code === "Space" && !isRunning) {
-        setTime(0);
-        setLastResult(null);
+      if (event.code === "Space" && !isRunning && !spacebarPressStart) {
+        setSpacebarPressStart(Date.now());
       }
     },
-    [isRunning]
+    [isRunning, spacebarPressStart]
   );
 
   const handleKeyUp = useCallback(
     (event) => {
       if (event.code === "Space") {
-        if (!isRunning) {
-          setIsRunning(true);
-          setStartTime(Date.now());
-        } else {
+        if (!isRunning && spacebarPressStart) {
+          const pressDuration = Date.now() - spacebarPressStart;
+          if (pressDuration >= 1000) {
+            setIsRunning(true);
+            setStartTime(Date.now());
+            setTime(0);
+            setLastResult(null);
+          }
+        } else if (isRunning) {
           setIsRunning(false);
           const elapsedTime = (Date.now() - startTime) / 1000;
           console.log(`Elapsed time: ${elapsedTime.toFixed(3)} seconds`);
           localStorage.setItem("lastTimerResult", elapsedTime.toFixed(3));
           setLastResult(elapsedTime);
-          if (onTimerStop) onTimerStop(elapsedTime); // Call the callback function
+          if (onTimerStop) onTimerStop(elapsedTime);
         }
+        setSpacebarPressStart(null);
       }
     },
-    [isRunning, startTime, onTimerStop]
+    [isRunning, spacebarPressStart, startTime, onTimerStop]
   );
 
   useEffect(() => {
@@ -49,7 +55,7 @@ const Timer = ({ onTimerStop }) => {
     if (isRunning) {
       intervalId = setInterval(() => {
         setTime(Date.now() - startTime);
-      }, 100); // Update every 100ms for smoother display
+      }, 100);
     }
     return () => {
       clearInterval(intervalId);
@@ -79,12 +85,14 @@ const Timer = ({ onTimerStop }) => {
       <p>
         {isRunning
           ? "Press Space to stop"
-          : lastResult
-          ? "Press Space to reset and start"
-          : "Press Space to start"}
+          : "Hold Space for 1s to start, release to begin timing"}
       </p>
     </div>
   );
 };
 
 export default Timer;
+
+/*------------------------------
+
+-------------------------------*/
