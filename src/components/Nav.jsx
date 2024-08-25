@@ -29,7 +29,7 @@ const Nav = () => {
               <li>
                 <Link
                   to="/home"
-                  className="text-m hover:underline underline-offset-2 font-medium"
+                  className="text-m hover:underline underline-offset-2 font-medium selection:text-fuchsia-500 selection:bg-pink-300"
                 >
                   Home
                 </Link>
